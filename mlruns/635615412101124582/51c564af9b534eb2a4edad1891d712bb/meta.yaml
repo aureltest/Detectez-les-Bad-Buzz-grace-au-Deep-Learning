@@ -1,0 +1,16 @@
+artifact_uri: file://C:\Users\aurel\Documents\Master\Détectez les Bad Buzz grâce au
+  Deep Learning\mlruns/635615412101124582/51c564af9b534eb2a4edad1891d712bb/artifacts
+end_time: 1687743994591
+entry_point_name: ''
+experiment_id: '635615412101124582'
+lifecycle_stage: active
+run_id: 51c564af9b534eb2a4edad1891d712bb
+run_name: TFIDF run
+run_uuid: 51c564af9b534eb2a4edad1891d712bb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1687743991420
+status: 3
+tags: []
+user_id: aurel

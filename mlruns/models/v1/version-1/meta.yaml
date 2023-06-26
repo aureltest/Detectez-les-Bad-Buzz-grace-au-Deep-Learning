@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1687740742279
+current_stage: None
+description: null
+last_updated_timestamp: 1687740742279
+name: v1
+run_id: d441706529cb465b9810147028cb7ce5
+run_link: null
+source: file://C:\Users\aurel\Documents\Master\Détectez les Bad Buzz grâce au Deep
+  Learning\mlruns/516261978344598869/d441706529cb465b9810147028cb7ce5/artifacts/sklearn-model
+status: READY
+status_message: null
+user_id: null
+version: 1
