@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1687743994581
+current_stage: None
+description: null
+last_updated_timestamp: 1687743994581
+name: tf-idf
+run_id: 51c564af9b534eb2a4edad1891d712bb
+run_link: null
+source: file://C:\Users\aurel\Documents\Master\Détectez les Bad Buzz grâce au Deep
+  Learning\mlruns/635615412101124582/51c564af9b534eb2a4edad1891d712bb/artifacts/sklearn-model
+status: READY
+status_message: null
+user_id: null
+version: 2

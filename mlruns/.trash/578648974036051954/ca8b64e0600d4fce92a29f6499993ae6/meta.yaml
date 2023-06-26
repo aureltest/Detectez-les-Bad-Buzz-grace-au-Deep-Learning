@@ -1,0 +1,17 @@
+artifact_uri: file://C:\Users\aurel\Documents\Master\Détectez les Bad Buzz grâce au
+  Deep Learning\mlruns/578648974036051954/ca8b64e0600d4fce92a29f6499993ae6/artifacts
+deleted_time: 1687742118945
+end_time: 1687741294754
+entry_point_name: ''
+experiment_id: '578648974036051954'
+lifecycle_stage: deleted
+run_id: ca8b64e0600d4fce92a29f6499993ae6
+run_name: inquisitive-hawk-651
+run_uuid: ca8b64e0600d4fce92a29f6499993ae6
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1687741225503
+status: 3
+tags: []
+user_id: aurel

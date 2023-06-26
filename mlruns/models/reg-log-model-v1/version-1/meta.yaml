@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1687739914394
+current_stage: None
+description: null
+last_updated_timestamp: 1687739914394
+name: reg-log-model-v1
+run_id: 26286eb1731d44dab01180d5edc2751d
+run_link: null
+source: file://C:\Users\aurel\Documents\Master\Détectez les Bad Buzz grâce au Deep
+  Learning\mlruns/182780226494788685/26286eb1731d44dab01180d5edc2751d/artifacts/sklearn-model
+status: READY
+status_message: null
+user_id: null
+version: 1

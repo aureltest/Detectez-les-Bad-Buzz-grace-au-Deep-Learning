@@ -1,0 +1,17 @@
+artifact_uri: file://C:\Users\aurel\Documents\Master\Détectez les Bad Buzz grâce au
+  Deep Learning\mlruns/182780226494788685/dc21e96e15c34151b87d5876b14bdab4/artifacts
+deleted_time: 1687739684606
+end_time: 1687739087561
+entry_point_name: ''
+experiment_id: '182780226494788685'
+lifecycle_stage: deleted
+run_id: dc21e96e15c34151b87d5876b14bdab4
+run_name: youthful-snake-16
+run_uuid: dc21e96e15c34151b87d5876b14bdab4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1687739018886
+status: 4
+tags: []
+user_id: aurel
