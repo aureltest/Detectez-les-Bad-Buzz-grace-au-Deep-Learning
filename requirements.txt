@@ -1,0 +1,9 @@
+Flask==2.3.2
+numpy==1.24.0
+scikit-learn==1.3.0
+en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.6.0/en_core_web_lg-3.6.0-py3-none-any.whl#sha256=9012584a8fcf5bc61bedb13a4b511fb81ffff9f770958ee06366671be10632e9
+tensorflow==2.10.0
+spacy==3.6.0
+gunicorn
+
+
