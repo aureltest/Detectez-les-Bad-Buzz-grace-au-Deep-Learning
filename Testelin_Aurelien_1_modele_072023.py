@@ -1,15 +1,15 @@
-from flask import Flask, request, jsonify
-from tensorflow.keras.models import load_model
+from flask import (Flask, redirect, render_template, request,
+                   url_for)
+
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import Tokenizer
+import tensorflow as tf
 import pickle
 import re
 import spacy
 from spacy.tokens import Doc
 from spacy.language import Language
-import nltk
 from sklearn.base import BaseEstimator, TransformerMixin
-
+import os
 import numpy as np
 
 app = Flask(__name__)
@@ -19,10 +19,12 @@ with open('tokenizer.pickle', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
 # Charger le modèle
-model = load_model('LSTM_model.h5')
-
-#Charger spacy
+interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
+interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
+interpreter.allocate_tensors()
+# Charger spacys
 nlp = spacy.load('en_core_web_lg')
+
 
 def prepare_keras_data(docs, max_sequence_length=40):
     encoded_docs = tokenizer.texts_to_sequences(docs)
@@ -137,10 +139,7 @@ def create_expand_contractions(nlp, name):
     return ExpandContractionsComponent(nlp)
 
 
-def clean_docs(texts, lemmatize=False, stem=False, rejoin=False):
-    if lemmatize and stem:
-        raise ValueError("Un seul transformateur peut être appliqué.")
-
+def clean_docs(texts, rejoin=False):
     def clean_text(text):
         text = re.sub(r'@[A-Za-z0-9_-]{1,15}\b', " ", text)
         text = re.sub(r'https?://[A-Za-z0-9./]+', " ", text)
@@ -152,17 +151,11 @@ def clean_docs(texts, lemmatize=False, stem=False, rejoin=False):
     docs = nlp.pipe(texts, disable=['parser', 'ner', 'textcat', 'tok2vec'], batch_size=10_000)
     if 'expand_contractions' not in nlp.pipe_names:
         nlp.add_pipe('expand_contractions', before='tagger')
-    stemmer = nltk.PorterStemmer()
 
     docs_cleaned = []
     for doc in docs:
         doc = [token for token in doc if token.is_alpha]
-        if lemmatize:
-            tokens = [tok.lemma_.strip() for tok in doc]
-        elif stem:
-            tokens = [stemmer.stem(tok.text.strip()) for tok in doc]
-        else:
-            tokens = [tok.text.strip() for tok in doc]
+        tokens = [tok.lemma_.strip() for tok in doc]
 
         if rejoin:
             tokens = ' '.join(tokens)
@@ -172,33 +165,42 @@ def clean_docs(texts, lemmatize=False, stem=False, rejoin=False):
 
 
 class SpacyTextCleaner(BaseEstimator, TransformerMixin):
-    def __init__(self, lemmatize=False, stem=False, rejoin=False):
-        self.lemmatize = lemmatize
-        self.stem = stem
+    def __init__(self, rejoin=False):
         self.rejoin = rejoin
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X, y=None):
-        return clean_docs(X, self.lemmatize, self.stem, self.rejoin)
+        return clean_docs(X, self.rejoin)
+
+@app.route('/')
+def index():
+    print('Request for index page received')
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json(force=True)
-    if 'message' not in data:
-        return jsonify({'error': 'No message provided'}), 400
+    tweet = request.form.get('tweet')
 
-    text_cleaned = clean_docs([data["message"]], lemmatize=True)
-    padded_sequences = prepare_keras_data(text_cleaned)
+    if tweet:
+        text_cleaned = clean_docs([tweet])
+        padded_sequences = prepare_keras_data(text_cleaned)
+        padded_sequences = padded_sequences.astype(np.float32)
 
-    prediction = model.predict(np.array(padded_sequences))
-    sentiment_score = prediction[0][0]
-    sentiment_class = "positive" if sentiment_score > 0.5 else "negative"
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
 
+        interpreter.set_tensor(input_details[0]['index'], padded_sequences)
+        interpreter.invoke()
+        prediction = interpreter.get_tensor(output_details[0]['index'])
 
-    return jsonify({'sentiment_score': float(sentiment_score), 'sentiment_class': sentiment_class})
+        sentiment_score = prediction[0][0]
+        sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
 
+        return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score)
+    else:
+        return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
