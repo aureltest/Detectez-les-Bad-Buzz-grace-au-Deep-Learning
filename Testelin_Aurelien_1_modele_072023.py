@@ -10,6 +10,7 @@ from spacy.tokens import Doc
 from spacy.language import Language
 from sklearn.base import BaseEstimator, TransformerMixin
 import os
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 import numpy as np
 
 app = Flask(__name__)
@@ -17,6 +18,30 @@ app = Flask(__name__)
 # Charger le tokenizer
 with open('tokenizer.pickle', 'rb') as handle:
     tokenizer = pickle.load(handle)
+
+
+model_path = "LSTM_model.tflite"
+if not os.path.isfile(model_path):
+    try:
+        # Créer le client BlobServiceClient
+        blob_service_client = BlobServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=tflitelstm;AccountKey=8GkilJ3mMDkQUWx6onXOE4+2q4ADNDZvH/aop9hCvOY0Iqup0uFluCxRg+zdLmkeAWJoE9RBScDI+AStCCvzWQ==;EndpointSuffix=core.windows.net")
+
+        # Spécifiez le nom de votre conteneur et le nom du blob pour votre modèle tflite
+        container_name = 'tflitecontainer'
+        blob_name = 'LSTM_model.tflite'
+
+        # Créer le BlobClient
+        blob_client = blob_service_client.get_blob_client(container_name, blob_name)
+
+        # Télécharger le blob en tant que fichier
+        with open("LSTM_model.tflite", "wb") as download_file:
+            download_file.write(blob_client.download_blob().readall())
+
+    except Exception as ex:
+        print('Exception:')
+        print('Exception:')
+        print(ex)
+
 
 # Charger le modèle
 interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")

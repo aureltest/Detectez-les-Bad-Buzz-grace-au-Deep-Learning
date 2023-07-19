@@ -5,5 +5,7 @@ en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_
 tensorflow==2.10.0
 spacy==3.6.0
 gunicorn
+azure-storage-blob==12.17.0
+
 
 
