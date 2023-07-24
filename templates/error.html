@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+    <title>Error - Binary Text Classification</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='classification_text.webp') }}">
+    <style>
+        .good-vibe { color: green; }
+        .bad-vibe { color: red; }
+    </style>
+</head>
+<body>
+     <main>
+        <div class="px-4 py-3 my-2 text-center">
+            <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='classification_text.webp') }}" alt="smiley Logo" width="270" height="200"/>
+            <h2><span class="bad-vibe">Oops! Something went wrong.</span></h2>
+            <p class="lead">Please try again.</p>
+          </div>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+          <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg px-4 gap-3">Try again</a>
+        </div>
+     </main>
+   </body>
+</html>

@@ -51,7 +51,7 @@ class FlaskTest(unittest.TestCase):
         Teste une route qui n'existe pas pour vérifier le bon code d'état
         """
         response = self.app.get('/non_existent_route', content_type='html/text')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
 
 if __name__ == "__main__":
