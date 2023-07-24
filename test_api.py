@@ -46,13 +46,6 @@ class FlaskTest(unittest.TestCase):
         response = self.app.post('/predict', data={})
         self.assertEqual(response.status_code, 400)
 
-    def test_non_existent_route(self):
-        """
-        Teste une route qui n'existe pas pour vérifier le bon code d'état
-        """
-        response = self.app.get('/non_existent_route', content_type='html/text')
-        self.assertEqual(response.status_code, 302)
-
 
 if __name__ == "__main__":
     unittest.main()

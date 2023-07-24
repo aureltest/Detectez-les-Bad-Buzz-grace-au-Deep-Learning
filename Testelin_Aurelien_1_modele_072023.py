@@ -14,15 +14,27 @@ from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 import numpy as np
 
 app = Flask(__name__)
-
-# Charger spacys
 nlp = spacy.load('en_core_web_lg')
 if 'expand_contractions' not in nlp.pipe_names:
     nlp.add_pipe('expand_contractions', before='tagger')
 
+def setup():
+    global tokenizer, interpreter
 
-with open('tokenizer.pickle', 'rb') as handle:
-    tokenizer = pickle.load(handle)
+    # Charger le tokenizer
+    with open('tokenizer.pickle', 'rb') as handle:
+        tokenizer = pickle.load(handle)
+
+    model_path = "LSTM_model.tflite"
+    if not os.path.isfile(model_path):
+        download_model()
+
+    # Charger le modèle
+    interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
+    interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
+    interpreter.allocate_tensors()
+
+
 
 def download_model():
     try:
@@ -43,15 +55,6 @@ def download_model():
     except Exception as ex:
         print('Exception:')
         print(ex)
-
-model_path = "LSTM_model.tflite"
-if not os.path.isfile(model_path):
-    download_model()
-
-# Charger le modèle
-interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
-interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
-interpreter.allocate_tensors()
 
 def prepare_keras_data(docs, max_sequence_length=40):
     encoded_docs = tokenizer.texts_to_sequences(docs)
@@ -237,12 +240,12 @@ def predict():
     else:
         return jsonify(error="No tweet provided"), 400
 
-
 @app.route('/predict_page', methods=['POST'])
 def predict_page():
     tweet = request.form.get('tweet')
 
     if tweet:
+        # Appel à la fonction predict
         response = predict()
         if response.status_code == 200:
             prediction = response.get_json()
@@ -250,10 +253,12 @@ def predict_page():
             sentiment_score = prediction["sentiment_score"]
             return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score)
         else:
-            # Handle error from /predict
+            # Gérer l'erreur de /predict
             return render_template('error.html', error=response.get_json()["error"])
     else:
         return redirect(url_for('index'))
+
+
 
 
 if __name__ == '__main__':
