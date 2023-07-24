@@ -15,16 +15,34 @@ import numpy as np
 
 app = Flask(__name__)
 
-# Charger le tokenizer
-with open('tokenizer.pickle', 'rb') as handle:
-    tokenizer = pickle.load(handle)
+
+def setup():
+    global tokenizer, interpreter, nlp
+
+    # Charger le tokenizer
+    with open('tokenizer.pickle', 'rb') as handle:
+        tokenizer = pickle.load(handle)
+
+    model_path = "LSTM_model.tflite"
+    if not os.path.isfile(model_path):
+        download_model()
+
+    # Charger le modèle
+    interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
+    interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
+    interpreter.allocate_tensors()
+
+    # Charger spacys
+    nlp = spacy.load('en_core_web_lg')
+    if 'expand_contractions' not in nlp.pipe_names:
+        nlp.add_pipe('expand_contractions', before='tagger')
 
 
-model_path = "LSTM_model.tflite"
-if not os.path.isfile(model_path):
+def download_model():
     try:
         # Créer le client BlobServiceClient
-        blob_service_client = BlobServiceClient.from_connection_string("DefaultEndpointsProtocol=https;AccountName=tflitelstm;AccountKey=8GkilJ3mMDkQUWx6onXOE4+2q4ADNDZvH/aop9hCvOY0Iqup0uFluCxRg+zdLmkeAWJoE9RBScDI+AStCCvzWQ==;EndpointSuffix=core.windows.net")
+        blob_service_client = BlobServiceClient.from_connection_string(
+            "DefaultEndpointsProtocol=https;AccountName=tflitelstm;AccountKey=8GkilJ3mMDkQUWx6onXOE4+2q4ADNDZvH/aop9hCvOY0Iqup0uFluCxRg+zdLmkeAWJoE9RBScDI+AStCCvzWQ==;EndpointSuffix=core.windows.net")
 
         # Spécifiez le nom de votre conteneur et le nom du blob pour votre modèle tflite
         container_name = 'tflitecontainer'
@@ -36,20 +54,9 @@ if not os.path.isfile(model_path):
         # Télécharger le blob en tant que fichier
         with open("LSTM_model.tflite", "wb") as download_file:
             download_file.write(blob_client.download_blob().readall())
-
     except Exception as ex:
         print('Exception:')
-        print('Exception:')
         print(ex)
-
-
-# Charger le modèle
-interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
-interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
-interpreter.allocate_tensors()
-# Charger spacys
-nlp = spacy.load('en_core_web_lg')
-
 
 def prepare_keras_data(docs, max_sequence_length=40):
     encoded_docs = tokenizer.texts_to_sequences(docs)
@@ -228,4 +235,5 @@ def predict():
         return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    setup()
     app.run(debug=True)
