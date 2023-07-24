@@ -1,5 +1,5 @@
 from flask import (Flask, redirect, render_template, request,
-                   url_for)
+                   url_for, jsonify)
 
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
@@ -14,7 +14,7 @@ from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 import numpy as np
 
 app = Flask(__name__)
-
+nlp = None
 
 def setup():
     global tokenizer, interpreter, nlp
@@ -36,7 +36,6 @@ def setup():
     nlp = spacy.load('en_core_web_lg')
     if 'expand_contractions' not in nlp.pipe_names:
         nlp.add_pipe('expand_contractions', before='tagger')
-
 
 def download_model():
     try:
@@ -210,6 +209,14 @@ class SpacyTextCleaner(BaseEstimator, TransformerMixin):
 def index():
     print('Request for index page received')
     return render_template('index.html')
+
+@app.errorhandler(400)
+def bad_request_error(error):
+    return jsonify({'error': 'Bad Request'}), 400
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return jsonify({'error': 'Not Found'}), 404
 
 @app.route('/predict', methods=['POST'])
 def predict():
