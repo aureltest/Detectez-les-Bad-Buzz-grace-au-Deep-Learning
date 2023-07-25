@@ -22,6 +22,12 @@ with open('tokenizer.pickle', 'rb') as handle:
 
 
 def download_model():
+    """
+    Télécharge un modèle TensorFlow Lite depuis un service blob Azure.
+
+    Raises:
+        Exception: En cas d'erreur pendant le téléchargement du modèle.
+    """
     try:
         # Créer le client BlobServiceClient
         blob_service_client = BlobServiceClient.from_connection_string(
@@ -51,12 +57,31 @@ interpreter.allocate_tensors()
 
 
 def prepare_keras_data(docs, max_sequence_length=40):
+    """
+    Prépare les données pour le modèle Keras.
+
+    Args:
+        docs (list): Liste de documents à encoder.
+        max_sequence_length (int): Longueur maximale pour le padding. Default est 40.
+
+    Returns:
+        numpy array: Documents encodés et padés.
+    """
     encoded_docs = tokenizer.texts_to_sequences(docs)
     padded_docs = pad_sequences(encoded_docs, int(max_sequence_length), padding='post')
     return padded_docs
 
 
 def expand_contractions(text: str) -> str:
+    """
+    Étend les contractions dans un texte en anglais.
+
+    Args:
+        text (str): Texte d'entrée.
+
+    Returns:
+        str: Texte avec les contractions étendues.
+    """
     flags = re.IGNORECASE | re.MULTILINE
 
     text = re.sub(r'`', "'", text, flags=flags)
@@ -145,8 +170,13 @@ def expand_contractions(text: str) -> str:
 
     return text
 
-
 class ExpandContractionsComponent:
+    """
+    Un composant personnalisé pour SpaCy pour étendre les contractions dans un texte.
+
+    Attributes:
+        nlp (Language): L'instance de langue SpaCy.
+    """
     name = "expand_contractions"
 
     def __init__(self, nlp: Language):
@@ -160,10 +190,30 @@ class ExpandContractionsComponent:
 
 @Language.factory('expand_contractions')
 def create_expand_contractions(nlp, name):
+    """
+    Factory function pour le composant ExpandContractionsComponent.
+
+    Args:
+        nlp (Language): L'instance de langue SpaCy.
+        name (str): Nom du composant.
+
+    Returns:
+        ExpandContractionsComponent: Nouveau composant pour étendre les contractions.
+    """
     return ExpandContractionsComponent(nlp)
 
 
 def clean_docs(texts, rejoin=False):
+    """
+    Nettoie une liste de textes.
+
+    Args:
+        texts (list): Liste de textes à nettoyer.
+        rejoin (bool): Si vrai, rejoint les tokens en une seule chaîne.
+
+    Returns:
+        list: Liste de textes nettoyés.
+    """
     def clean_text(text):
         text = re.sub(r'@[A-Za-z0-9_-]{1,15}\b', " ", text)
         text = re.sub(r'https?://[A-Za-z0-9./]+', " ", text)
@@ -187,8 +237,13 @@ def clean_docs(texts, rejoin=False):
 
     return docs_cleaned
 
-
 class SpacyTextCleaner(BaseEstimator, TransformerMixin):
+    """
+    Un cleaner de texte basé sur SpaCy pour l'utilisation avec scikit-learn.
+
+    Attributes:
+        rejoin (bool): Si vrai, rejoint les tokens en une seule chaîne.
+    """
     def __init__(self, rejoin=False):
         self.rejoin = rejoin
 
@@ -198,15 +253,29 @@ class SpacyTextCleaner(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         return clean_docs(X, self.rejoin)
 
-
 @app.route('/')
 def index():
+    """
+    Route pour la page d'accueil du serveur.
+
+    Returns:
+        str: Le rendu du template pour la page d'accueil.
+    """
     print('Request for index page received')
     return render_template('index.html')
 
 
 @app.errorhandler(400)
 def bad_request_error(error):
+    """
+    Gère les erreurs 400.
+
+    Args:
+        error (werkzeug.exceptions.BadRequest): L'objet erreur.
+
+    Returns:
+        Tuple[str, int]: Une réponse JSON contenant le message d'erreur, et le statut HTTP.
+    """
     return jsonify({'error': 'Bad Request'}), 400
 
 @app.errorhandler(400)
@@ -216,6 +285,15 @@ def bad_request_error(error):
 
 @app.errorhandler(404)
 def not_found_error(error):
+    """
+    Gère les erreurs 404.
+
+    Args:
+        error (werkzeug.exceptions.NotFound): L'objet erreur.
+
+    Returns:
+        Tuple[str, int]: Une réponse JSON contenant le message d'erreur, et le statut HTTP.
+    """
     return jsonify({'error': 'Not Found'}), 404
 
 @app.errorhandler(404)
@@ -224,6 +302,15 @@ def not_found_error(error):
 
 
 def predict_sentiment(tweet):
+    """
+    Prédit le sentiment d'un tweet en utilisant le modèle TensorFlow Lite.
+
+    Args:
+        tweet (str): Le texte du tweet.
+
+    Returns:
+        Tuple[float, str]: Le score du sentiment (entre 0 et 1), et la classe du sentiment ("Positive" ou "Negative").
+    """
     text_cleaned = clean_docs([tweet])
     padded_sequences = prepare_keras_data(text_cleaned)
     padded_sequences = padded_sequences.astype(np.float32)
@@ -242,6 +329,12 @@ def predict_sentiment(tweet):
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    """
+    Route pour prédire le sentiment d'un tweet.
+
+    Returns:
+        Union[Response, Tuple[str, int]]: Une réponse JSON contenant la prédiction, ou une erreur si le tweet n'est pas fourni.
+    """
     tweet = request.form.get('tweet')
     print(tweet)
     if tweet and tweet != "":
@@ -258,6 +351,12 @@ def predict():
 
 @app.route('/predict_page', methods=['POST'])
 def predict_page():
+    """
+    Route pour prédire le sentiment d'un tweet et afficher le résultat sur une page web.
+
+    Returns:
+        Union[str, Response]: Le rendu du template avec la prédiction, ou une erreur si le tweet n'est pas fourni.
+    """
     tweet = request.form.get('tweet')
 
     if tweet and tweet != "":
