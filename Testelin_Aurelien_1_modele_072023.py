@@ -198,13 +198,6 @@ class SpacyTextCleaner(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         return clean_docs(X, self.rejoin)
 
-
-@app.route('/')
-def index():
-    print('Request for index page received')
-    return render_template('index.html')
-
-
 @app.errorhandler(400)
 def bad_request_error(error):
     return jsonify({'error': 'Bad Request'}), 400
@@ -222,11 +215,15 @@ def not_found_error(error):
 def not_found_error(error):
     return render_template('error.html'), 404
 
+@app.route('/')
+def index():
+    print('Request for index page received')
+    return render_template('index.html')
 
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.route('/predict_page', methods=['POST'])
+def predict_page():
     tweet = request.form.get('tweet')
-    print(tweet)
+
     if tweet and tweet != "":
         text_cleaned = clean_docs([tweet])
         padded_sequences = prepare_keras_data(text_cleaned)
@@ -243,32 +240,9 @@ def predict():
         sentiment_score = float(sentiment_score)
         sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
 
-        return jsonify({
-            'prediction': {
-                'sentiment_class': sentiment_class,
-                'sentiment_score': sentiment_score
-            }
-        }), 200
+        return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score), 200
     else:
-        return jsonify(error="No tweet provided"), 400
-
-
-@app.route('/predict_page', methods=['POST'])
-def predict_page():
-    tweet = request.form.get('tweet')
-
-    if tweet:
-        # Appel à la fonction predict
-        response = predict()
-        if response.status_code == 200:
-            prediction = response.get_json()
-            sentiment_class = prediction["sentiment_class"]
-            sentiment_score = prediction["sentiment_score"]
-            return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score)
-        else:
-            return render_template('error.html', error=response.get_json()["error"])
-    else:
-        return render_template('error.html')
+        return render_template('error.html', error="No tweet provided"), 400
 
 
 if __name__ == '__main__':
