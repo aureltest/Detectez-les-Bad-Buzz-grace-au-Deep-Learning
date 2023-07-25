@@ -43,7 +43,7 @@ class FlaskTest(unittest.TestCase):
         """
         Teste si la page de prédiction gère correctement les erreurs
         """
-        response = self.app.post('/predict', data={})
+        response = self.app.post('/predict', data={'tweet': ''})
         self.assertEqual(response.status_code, 400)
 
 

@@ -227,7 +227,7 @@ def not_found_error(error):
 def predict():
     tweet = request.form.get('tweet')
     print(tweet)
-    if tweet:
+    if tweet is not None:
         text_cleaned = clean_docs([tweet])
         padded_sequences = prepare_keras_data(text_cleaned)
         padded_sequences = padded_sequences.astype(np.float32)
@@ -249,7 +249,7 @@ def predict():
                 'sentiment_score': sentiment_score
             }
         }), 200
-    elif tweet == '':
+    else:
         return jsonify(error="No tweet provided"), 400
 
 
@@ -265,6 +265,8 @@ def predict_page():
             sentiment_class = prediction["sentiment_class"]
             sentiment_score = prediction["sentiment_score"]
             return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score)
+        else:
+            return render_template('error.html', error=response.get_json()["error"])
     else:
         return render_template('error.html')
 
