@@ -15,8 +15,6 @@ import numpy as np
 
 app = Flask(__name__)
 nlp = spacy.load('en_core_web_lg')
-if 'expand_contractions' not in nlp.pipe_names:
-    nlp.add_pipe('expand_contractions', before='tagger')
 
 def setup():
     global tokenizer, interpreter
