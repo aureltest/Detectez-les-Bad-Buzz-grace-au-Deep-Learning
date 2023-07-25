@@ -259,5 +259,4 @@ def predict_page():
 
 
 if __name__ == '__main__':
-    setup()
     app.run(debug=True)
