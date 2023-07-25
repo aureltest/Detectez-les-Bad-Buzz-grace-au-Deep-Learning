@@ -227,7 +227,7 @@ def not_found_error(error):
 def predict():
     tweet = request.form.get('tweet')
     print(tweet)
-    if tweet is not None:
+    if tweet and tweet != "":
         text_cleaned = clean_docs([tweet])
         padded_sequences = prepare_keras_data(text_cleaned)
         padded_sequences = padded_sequences.astype(np.float32)
