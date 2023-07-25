@@ -3,6 +3,7 @@
     <title>Sentiment Analysis Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='classification_text.webp') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         .positive { color: green; }
         .negative { color: red; }
@@ -11,8 +12,8 @@
 <html>
    <body>
      <main>
-        <div class="px-4 py-5 my-5 text-center">
-            <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='classification_text.webp') }}" alt="smiley Logo" width="270" height="200"/>
+        <div class="px-3 text-center">
+            <img class="d-block mx-auto img-fluid" src="{{ url_for('static', filename='classification_text.webp') }}" alt="smiley Logo"/>
             <h1 class="display-6 fw-bold">Sentiment Analysis Result</h1>
             <div class="col-lg-6 mx-auto">
                 <p class="lead mb-4">The sentiment class of your sentence is: <span class="fw-bold {{ 'positive' if sentiment_score > 0.5 else 'negative' }}">{{ sentiment_class }}</span></p>

@@ -253,18 +253,6 @@ class SpacyTextCleaner(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         return clean_docs(X, self.rejoin)
 
-@app.route('/')
-def index():
-    """
-    Route pour la page d'accueil du serveur.
-
-    Returns:
-        str: Le rendu du template pour la page d'accueil.
-    """
-    print('Request for index page received')
-    return render_template('index.html')
-
-
 @app.errorhandler(400)
 def bad_request_error(error):
     """
@@ -300,6 +288,16 @@ def not_found_error(error):
 def not_found_error(error):
     return render_template('error.html'), 404
 
+@app.route('/')
+def index():
+    """
+    Route pour la page d'accueil du serveur.
+
+    Returns:
+        str: Le rendu du template pour la page d'accueil.
+    """
+    print('Request for index page received')
+    return render_template('index.html')
 
 def predict_sentiment(tweet):
     """
@@ -327,27 +325,6 @@ def predict_sentiment(tweet):
     sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
     return sentiment_score, sentiment_class
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    """
-    Route pour prédire le sentiment d'un tweet.
-
-    Returns:
-        Union[Response, Tuple[str, int]]: Une réponse JSON contenant la prédiction, ou une erreur si le tweet n'est pas fourni.
-    """
-    tweet = request.form.get('tweet')
-    print(tweet)
-    if tweet and tweet != "":
-        sentiment_score, sentiment_class = predict_sentiment(tweet)
-        return jsonify({
-            'prediction': {
-                'sentiment_class': sentiment_class,
-                'sentiment_score': sentiment_score
-            }
-        }), 200
-    else:
-        return jsonify(error="No tweet provided"), 400
-
 
 @app.route('/predict_page', methods=['POST'])
 def predict_page():
@@ -362,9 +339,9 @@ def predict_page():
     if tweet and tweet != "":
         sentiment_score, sentiment_class = predict_sentiment(tweet)
 
-        return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score)
+        return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score), 200
     else:
-        return render_template('error.html', error="No tweet provided")
+        return render_template('error.html', error="No tweet provided"), 400
 
 
 if __name__ == '__main__':

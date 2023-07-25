@@ -3,6 +3,7 @@
     <title>Binary Text Classification</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='classification_text.webp') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         .good-vibe { color: green; }
         .bad-vibe { color: red; }
@@ -11,8 +12,8 @@
 <html>
    <body>
      <main>
-        <div class="px-4 py-3 my-2 text-center">
-            <img class="d-block mx-auto mb-4" src="{{ url_for('static', filename='classification_text.webp') }}" alt="smiley Logo" width="270" height="200"/>
+        <div class="px-4 py-2 text-center">
+            <img class="d-block mx-auto mb-4 img-fluid" src="{{ url_for('static', filename='classification_text.webp') }}" alt="smiley Logo"/>
             <!-- <img  src="/docs/5.1/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
             <h2><span class="good-vibe">Good Vibe</span> or <span class="bad-vibe">Bad Vibe</span></h2>
           </div>
