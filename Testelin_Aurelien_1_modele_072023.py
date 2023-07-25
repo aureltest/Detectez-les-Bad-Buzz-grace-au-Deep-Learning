@@ -231,6 +231,7 @@ def predict():
         prediction = interpreter.get_tensor(output_details[0]['index'])
 
         sentiment_score = prediction[0][0]
+        sentiment_score = float(sentiment_score)
         sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
 
         return jsonify(sentiment_class=sentiment_class, sentiment_score=sentiment_score)
