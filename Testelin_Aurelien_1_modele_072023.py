@@ -16,23 +16,9 @@ import numpy as np
 app = Flask(__name__)
 nlp = spacy.load('en_core_web_lg')
 
-def setup():
-    global tokenizer, interpreter
-
-    # Charger le tokenizer
-    with open('tokenizer.pickle', 'rb') as handle:
-        tokenizer = pickle.load(handle)
-
-    model_path = "LSTM_model.tflite"
-    if not os.path.isfile(model_path):
-        download_model()
-
-    # Charger le modèle
-    interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
-    interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
-    interpreter.allocate_tensors()
-
-
+# Charger le tokenizer
+with open('tokenizer.pickle', 'rb') as handle:
+    tokenizer = pickle.load(handle)
 
 def download_model():
     try:
@@ -53,6 +39,15 @@ def download_model():
     except Exception as ex:
         print('Exception:')
         print(ex)
+
+
+model_path = "LSTM_model.tflite"
+if not os.path.isfile(model_path):
+    download_model()
+interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
+interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
+interpreter.allocate_tensors()
+
 
 def prepare_keras_data(docs, max_sequence_length=40):
     encoded_docs = tokenizer.texts_to_sequences(docs)
@@ -202,18 +197,22 @@ class SpacyTextCleaner(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         return clean_docs(X, self.rejoin)
 
+
 @app.route('/')
 def index():
     print('Request for index page received')
     return render_template('index.html')
 
+
 @app.errorhandler(400)
 def bad_request_error(error):
     return jsonify({'error': 'Bad Request'}), 400
 
+
 @app.errorhandler(404)
 def not_found_error(error):
     return jsonify({'error': 'Not Found'}), 404
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -238,6 +237,7 @@ def predict():
     else:
         return jsonify(error="No tweet provided"), 400
 
+
 @app.route('/predict_page', methods=['POST'])
 def predict_page():
     tweet = request.form.get('tweet')
@@ -255,8 +255,6 @@ def predict_page():
             return render_template('error.html', error=response.get_json()["error"])
     else:
         return redirect(url_for('index'))
-
-
 
 
 if __name__ == '__main__':
