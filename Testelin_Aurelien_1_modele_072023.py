@@ -20,6 +20,7 @@ nlp = spacy.load('en_core_web_lg')
 with open('tokenizer.pickle', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
+
 def download_model():
     try:
         # Créer le client BlobServiceClient
@@ -208,16 +209,24 @@ def index():
 def bad_request_error(error):
     return jsonify({'error': 'Bad Request'}), 400
 
+@app.errorhandler(400)
+def bad_request_error(error):
+    return render_template('error.html'), 400
+
 
 @app.errorhandler(404)
 def not_found_error(error):
     return jsonify({'error': 'Not Found'}), 404
 
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html'), 404
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
     tweet = request.form.get('tweet')
-
+    print(tweet)
     if tweet:
         text_cleaned = clean_docs([tweet])
         padded_sequences = prepare_keras_data(text_cleaned)
@@ -235,7 +244,7 @@ def predict():
         sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
 
         return jsonify(sentiment_class=sentiment_class, sentiment_score=sentiment_score)
-    else:
+    elif tweet == '':
         return jsonify(error="No tweet provided"), 400
 
 
@@ -251,11 +260,8 @@ def predict_page():
             sentiment_class = prediction["sentiment_class"]
             sentiment_score = prediction["sentiment_score"]
             return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score)
-        else:
-            # Gérer l'erreur de /predict
-            return render_template('error.html', error=response.get_json()["error"])
     else:
-        return redirect(url_for('index'))
+        return render_template('error.html')
 
 
 if __name__ == '__main__':
