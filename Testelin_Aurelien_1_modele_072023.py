@@ -198,6 +198,13 @@ class SpacyTextCleaner(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         return clean_docs(X, self.rejoin)
 
+
+@app.route('/')
+def index():
+    print('Request for index page received')
+    return render_template('index.html')
+
+
 @app.errorhandler(400)
 def bad_request_error(error):
     return jsonify({'error': 'Bad Request'}), 400
@@ -215,34 +222,50 @@ def not_found_error(error):
 def not_found_error(error):
     return render_template('error.html'), 404
 
-@app.route('/')
-def index():
-    print('Request for index page received')
-    return render_template('index.html')
+
+def predict_sentiment(tweet):
+    text_cleaned = clean_docs([tweet])
+    padded_sequences = prepare_keras_data(text_cleaned)
+    padded_sequences = padded_sequences.astype(np.float32)
+
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    interpreter.set_tensor(input_details[0]['index'], padded_sequences)
+    interpreter.invoke()
+    prediction = interpreter.get_tensor(output_details[0]['index'])
+
+    sentiment_score = prediction[0][0]
+    sentiment_score = float(sentiment_score)
+    sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
+    return sentiment_score, sentiment_class
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    tweet = request.form.get('tweet')
+    print(tweet)
+    if tweet and tweet != "":
+        sentiment_score, sentiment_class = predict_sentiment(tweet)
+        return jsonify({
+            'prediction': {
+                'sentiment_class': sentiment_class,
+                'sentiment_score': sentiment_score
+            }
+        }), 200
+    else:
+        return jsonify(error="No tweet provided"), 400
+
 
 @app.route('/predict_page', methods=['POST'])
 def predict_page():
     tweet = request.form.get('tweet')
 
     if tweet and tweet != "":
-        text_cleaned = clean_docs([tweet])
-        padded_sequences = prepare_keras_data(text_cleaned)
-        padded_sequences = padded_sequences.astype(np.float32)
+        sentiment_score, sentiment_class = predict_sentiment(tweet)
 
-        input_details = interpreter.get_input_details()
-        output_details = interpreter.get_output_details()
-
-        interpreter.set_tensor(input_details[0]['index'], padded_sequences)
-        interpreter.invoke()
-        prediction = interpreter.get_tensor(output_details[0]['index'])
-
-        sentiment_score = prediction[0][0]
-        sentiment_score = float(sentiment_score)
-        sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
-
-        return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score), 200
+        return render_template('prediction.html', sentiment_class=sentiment_class, sentiment_score=sentiment_score)
     else:
-        return render_template('error.html', error="No tweet provided"), 400
+        return render_template('error.html', error="No tweet provided")
 
 
 if __name__ == '__main__':
