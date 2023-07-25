@@ -243,7 +243,12 @@ def predict():
         sentiment_score = float(sentiment_score)
         sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
 
-        return jsonify(sentiment_class=sentiment_class, sentiment_score=sentiment_score)
+        return jsonify({
+            'prediction': {
+                'sentiment_class': sentiment_class,
+                'sentiment_score': sentiment_score
+            }
+        }), 200
     elif tweet == '':
         return jsonify(error="No tweet provided"), 400
 
