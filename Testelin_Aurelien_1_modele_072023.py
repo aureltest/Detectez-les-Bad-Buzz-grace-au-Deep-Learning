@@ -17,8 +17,9 @@ app = Flask(__name__)
 nlp = spacy.load('en_core_web_lg')
 
 # Charger le tokenizer
-with open('tokenizer.pickle', 'rb') as handle:
-    tokenizer = pickle.load(handle)
+with open('tokenizer.json', 'r', encoding='utf-8') as f:
+    loaded_tokenizer_json = f.read()
+tokenizer = tf.keras.preprocessing.text.tokenizer_from_json(loaded_tokenizer_json)
 
 
 def download_model():
@@ -35,23 +36,24 @@ def download_model():
 
         # Spécifiez le nom de votre conteneur et le nom du blob pour votre modèle tflite
         container_name = 'tflitecontainer'
-        blob_name = 'LSTM_model.tflite'
+        blob_name = 'lstm_classification.tflite'
 
         # Créer le BlobClient
         blob_client = blob_service_client.get_blob_client(container_name, blob_name)
 
         # Télécharger le blob en tant que fichier
-        with open("LSTM_model.tflite", "wb") as download_file:
+        with open("lstm_classification.tflite", "wb") as download_file:
             download_file.write(blob_client.download_blob().readall())
     except Exception as ex:
         print('Exception:')
         print(ex)
 
 
-model_path = "LSTM_model.tflite"
+model_path = "lstm_classification.tflite"
 if not os.path.isfile(model_path):
     download_model()
-interpreter = tf.lite.Interpreter(model_path="LSTM_model.tflite")
+
+interpreter = tf.lite.Interpreter(model_path="lstm_classification.tflite")
 interpreter.resize_tensor_input(input_index=interpreter.get_input_details()[0]['index'], tensor_size=[1, 40])
 interpreter.allocate_tensors()
 
