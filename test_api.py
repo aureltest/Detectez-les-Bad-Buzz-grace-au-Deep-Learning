@@ -26,6 +26,21 @@ class FlaskTest(unittest.TestCase):
         response = self.app.get('/', content_type='html/text')
         self.assertEqual(response.status_code, 200)
 
+    def test_api_predict_sentiment(self):
+        """
+        Teste la route API api_predict_sentiment pour vérifier que la prédiction est renvoyée correctement.
+        Vérifie que la réponse est un JSON avec les champs sentiment_score et sentiment_class.
+        """
+        response = self.app.post('/api/predict_sentiment', json={'tweet': 'I love coding !'})
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+
+        self.assertIn('sentiment_score', data)
+        self.assertIn('sentiment_class', data)
+        self.assertIsInstance(data['sentiment_score'], float)
+        self.assertIn(data['sentiment_class'], ["Positive", "Negative"])
+
     def test_prediction_page(self):
         """
         Teste si la page de prédiction renvoie un code 200 si le tweet existe et un message d'erreur sinon
@@ -39,7 +54,6 @@ class FlaskTest(unittest.TestCase):
     def test_prepare_keras_data(self):
         """
         Teste la fonction prepare_keras_data pour vérifier que les données sont correctement préparées pour l'entraînement.
-
         Vérifie que le résultat est un tableau numpy et que toutes les séquences sont de longueur 40.
         """
         input_data = ['This is a test', 'Another test']
@@ -52,7 +66,6 @@ class FlaskTest(unittest.TestCase):
     def test_clean_docs(self):
         """
         Teste la fonction clean_docs pour vérifier que le texte est correctement nettoyé.
-
         Vérifie que les mentions, les liens et les caractères spéciaux sont correctement retirés du texte.
         """
         texts = ["@John I love https://www.coding.com &amp; &quot;"]
@@ -63,7 +76,6 @@ class FlaskTest(unittest.TestCase):
     def test_expand_contractions(self):
         """
         Teste la fonction ExpandContractionsComponent pour vérifier que les contractions sont correctement étendues.
-
         Vérifie que les contractions comme "I'm" et "I'd've" sont étendues en "I am" et "I would have" respectivement.
         """
         component = main.ExpandContractionsComponent(main.nlp) # corrected here
@@ -74,7 +86,6 @@ class FlaskTest(unittest.TestCase):
     def test_predict_sentiment(self):
         """
         Teste la fonction predict_sentiment pour vérifier que le sentiment d'un tweet est correctement prédit.
-
         Vérifie que le score du sentiment est un float et que la classe du sentiment est soit "Positive" soit "Negative".
         """
         tweet = "I love coding"

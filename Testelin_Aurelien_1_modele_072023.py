@@ -224,7 +224,7 @@ def clean_docs(texts, rejoin=False):
 
     texts = [clean_text(text) for text in texts]
 
-    docs = nlp.pipe(texts, disable=['parser', 'ner', 'textcat', 'tok2vec'], batch_size=10_000)
+    docs = nlp.pipe(texts, disable=['parser', 'ner', 'textcat', 'tok2vec'])
     if 'expand_contractions' not in nlp.pipe_names:
         nlp.add_pipe('expand_contractions', before='tagger')
 
@@ -326,6 +326,19 @@ def predict_sentiment(tweet):
     sentiment_score = float(sentiment_score)
     sentiment_class = "Positive" if sentiment_score > 0.5 else "Negative"
     return sentiment_score, sentiment_class
+
+
+@app.route('/api/predict_sentiment', methods=['POST'])
+def api_predict_sentiment():
+    tweet = request.json.get('tweet')
+    if tweet:
+        sentiment_score, sentiment_class = predict_sentiment(tweet)
+        return jsonify({
+            'sentiment_score': sentiment_score,
+            'sentiment_class': sentiment_class
+        }), 200
+    else:
+        return jsonify({'error': 'No tweet provided'}), 400
 
 
 @app.route('/predict_page', methods=['POST'])
